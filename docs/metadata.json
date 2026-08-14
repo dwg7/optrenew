@@ -1,0 +1,31 @@
+{
+  "id": "optrenew",
+  "title": "optrenew",
+  "description": "Renewal-inspired MapLibre styles for GSI optimized vector tiles, designed as quiet and reliable basemaps for spiccato-like use cases.",
+  "license": "CC0-1.0",
+  "repository": "https://github.com/dwg7/optrenew",
+  "styles": [
+    {
+      "id": "optrenew-std",
+      "title": "optrenew std",
+      "url": "./optrenew-std.json",
+      "description": "A renewal-inspired standard basemap style for GSI optimized vector tiles. Warmer, quieter, and more modern than the original optimal_bvmap std.json."
+    },
+    {
+      "id": "optrenew-pale",
+      "title": "optrenew pale",
+      "url": "./optrenew-pale.json",
+      "description": "A pale renewal-inspired basemap style optimized for thematic overlays. Lower saturation and contrast for disaster response, statistics, and operational visualization."
+    }
+  ],
+  "tags": [
+    "gsi",
+    "maplibre",
+    "vector-tiles",
+    "basemap",
+    "terrain",
+    "japan",
+    "renewal-inspired",
+    "spiccato"
+  ]
+}

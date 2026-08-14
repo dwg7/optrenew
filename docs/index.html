@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>optrenew — GSI ベクトルタイル リニューアル風スタイル デモ</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.1.0/dist/maplibre-gl.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  #map { position: fixed; inset: 0; }
+
+  #panel {
+    position: absolute; top: 10px; left: 10px; z-index: 10;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(8px);
+    border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+    padding: 14px 16px; min-width: 220px; max-width: 260px;
+    font-size: 13px; line-height: 1.5;
+  }
+  #panel h1 { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+  #panel .row { margin-bottom: 8px; }
+  #panel label { display: block; font-weight: 600; margin-bottom: 4px; color: #444; font-size: 12px; }
+  #panel select, #panel button {
+    width: 100%; padding: 6px 8px; border-radius: 6px;
+    border: 1px solid #ccc; background: #fff;
+    font-size: 12px; cursor: pointer;
+  }
+  #panel button { background: #2c6fad; color: #fff; border: none; font-weight: 600; margin-top: 2px; }
+  #panel button:hover { background: #245d92; }
+  .locations { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .locations button {
+    width: auto; padding: 3px 8px; font-size: 11px; font-weight: 500;
+    background: #e8eef5; color: #2c4a6e; border: 1px solid #b8c8dc;
+    border-radius: 4px; cursor: pointer; margin: 0;
+  }
+  .locations button:hover { background: #d0dff0; }
+  #info { margin-top: 10px; font-size: 11px; color: #666; border-top: 1px solid #eee; padding-top: 8px; }
+  #info code { background: rgba(0,0,0,0.06); padding: 1px 3px; border-radius: 3px; font-size: 10px; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="panel">
+  <h1>optrenew</h1>
+  <div class="row">
+    <label for="style-select">スタイル</label>
+    <select id="style-select">
+      <option value="./optrenew-std.json">optrenew-std（標準）</option>
+      <option value="./optrenew-pale.json">optrenew-pale（淡色）</option>
+    </select>
+  </div>
+  <div class="row">
+    <label>確認地点</label>
+    <div class="locations">
+      <button onclick="goto(130.7, 32.8, 12)">熊本</button>
+      <button onclick="goto(141.35, 43.06, 12)">札幌</button>
+      <button onclick="goto(139.69, 35.69, 12)">東京</button>
+      <button onclick="goto(140.87, 38.27, 12)">仙台</button>
+      <button onclick="goto(136.9, 35.17, 12)">名古屋</button>
+      <button onclick="goto(135.5, 34.69, 12)">大阪</button>
+      <button onclick="goto(132.45, 34.39, 12)">広島</button>
+      <button onclick="goto(130.4, 33.59, 12)">福岡</button>
+      <button onclick="goto(127.68, 26.21, 12)">那覇</button>
+      <button onclick="goto(137.97, 36.24, 12)">松本</button>
+    </div>
+  </div>
+  <div class="row">
+    <button id="terrain-btn" onclick="toggleTerrain()">🏔 地形 ON</button>
+  </div>
+  <div id="info">
+    <div id="zoom-info">ズーム: —</div>
+    <div style="margin-top:4px;">
+      <a href="https://github.com/dwg7/optrenew" target="_blank" rel="noopener" style="color:#2c6fad;">GitHub</a>
+      &nbsp;·&nbsp;
+      <a href="https://github.com/dwg7/optrenew/blob/main/README.md" target="_blank" rel="noopener" style="color:#2c6fad;">README</a>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@6.1.0/dist/maplibre-gl.js"></script>
+<script>
+// Parse hash for initial position
+function parseHash() {
+  const hash = location.hash.replace('#', '');
+  const parts = hash.split('/');
+  if (parts.length >= 5) {
+    return {
+      zoom: parseFloat(parts[0]) || 12,
+      lat: parseFloat(parts[1]) || 32.8,
+      lng: parseFloat(parts[2]) || 130.7,
+      pitch: parseFloat(parts[3]) || 0,
+      bearing: parseFloat(parts[4]) || 0
+    };
+  }
+  return null;
+}
+
+// Parse URL params for style
+function getStyleParam() {
+  const params = new URLSearchParams(location.search);
+  return params.get('style');
+}
+
+const initial = parseHash() || { zoom: 12, lat: 32.8, lng: 130.7, pitch: 0, bearing: 0 };
+const styleParam = getStyleParam();
+
+// Determine initial style
+const styleSelect = document.getElementById('style-select');
+if (styleParam === 'pale') {
+  styleSelect.value = './optrenew-pale.json';
+}
+let currentStyleUrl = styleSelect.value;
+
+const map = new maplibregl.Map({
+  container: 'map',
+  style: currentStyleUrl,
+  center: [initial.lng, initial.lat],
+  zoom: initial.zoom,
+  pitch: initial.pitch,
+  bearing: initial.bearing,
+  hash: false
+});
+
+let terrainEnabled = false;
+
+map.on('load', function() {
+  terrainEnabled = !!map.getTerrain();
+  updateHash();
+});
+
+map.addControl(new maplibregl.NavigationControl(), 'top-right');
+map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-right');
+map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
+
+// Update hash
+function updateHash() {
+  const c = map.getCenter();
+  const z = map.getZoom().toFixed(2);
+  const p = map.getPitch().toFixed(1);
+  const b = map.getBearing().toFixed(1);
+  location.replace(`#${z}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}/${p}/${b}`);
+  document.getElementById('zoom-info').textContent = `ズーム: ${parseFloat(z).toFixed(1)}`;
+}
+
+map.on('move', updateHash);
+
+// Style switcher
+styleSelect.addEventListener('change', function() {
+  const url = this.value;
+  currentStyleUrl = url;
+  map.setStyle(url);
+  // Re-apply terrain state after style loads
+  map.once('styledata', () => {
+    if (!terrainEnabled && map.getTerrain()) {
+      map.setTerrain(null);
+    }
+  });
+});
+
+// Terrain toggle
+function toggleTerrain() {
+  terrainEnabled = !terrainEnabled;
+  const btn = document.getElementById('terrain-btn');
+  if (terrainEnabled) {
+    // Re-load style with terrain
+    map.setStyle(currentStyleUrl);
+    btn.textContent = '🏔 地形 ON';
+  } else {
+    map.setTerrain(null);
+    btn.textContent = '🏔 地形 OFF';
+  }
+}
+
+// Location shortcuts
+function goto(lng, lat, zoom) {
+  map.flyTo({ center: [lng, lat], zoom: zoom, pitch: 30, bearing: 0, duration: 1500 });
+}
+</script>
+</body>
+</html>
