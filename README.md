@@ -188,7 +188,8 @@ https://dwg7.github.io/optrenew/optrenew-pale.json
 - [ ] Register `optrenew-std` in the styles catalog.
 - [ ] Register `optrenew-pale` in the styles catalog.
 - [ ] Evaluate whether spiccato should switch its background style to `optrenew-std` or `optrenew-pale`.
-- [ ] 地理院地図（中・小縮尺タイル）リニューアルの記号変更（湿地ハッチング、飛行場・港湾記号統一、火山のオーバーレイ化）を optrenew のシンボル設計に反映するか検討する。
+- [x] 地理院地図（中・小縮尺タイル）リニューアルの記号変更のうち、bvmapで実装可能な項目（飛行場・港湾記号の統一、火山・採鉱地記号の廃止、市区町村界のZL10表示）を反映する。（[#3](https://github.com/dwg7/optrenew/issues/3)）
+- [ ] 湿地のハッチング表現化、山系・河川湖沼系・陸域自然地名の文字色変更を検討する（該当する `vt_code` ・レイヤーの特定が必要）。
 - [ ] `optrenew-pale` を2026年熊本地震関連の災害オーバーレイ（地殻変動・活断層図・地形分類・斜面崩壊分布）と重ね合わせ、可読性を確認する。
 
 The upload procedure for the Martin instance used by stars.optgeo.org is intentionally left as a TODO. It will be provided later during an interactive Claude Code session.
