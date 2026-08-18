@@ -77,8 +77,9 @@
   </div>
 </div>
 
-<script src="https://unpkg.com/maplibre-gl@6.1.0/dist/maplibre-gl.js"></script>
-<script>
+<script type="module">
+import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.1.0/dist/maplibre-gl.mjs';
+
 // Parse hash for initial position
 function parseHash() {
   const hash = location.hash.replace('#', '');
@@ -175,6 +176,10 @@ function toggleTerrain() {
 function goto(lng, lat, zoom) {
   map.flyTo({ center: [lng, lat], zoom: zoom, pitch: 30, bearing: 0, duration: 1500 });
 }
+
+// Expose to inline onclick handlers (module scope is not global scope)
+window.goto = goto;
+window.toggleTerrain = toggleTerrain;
 </script>
 </body>
 </html>
